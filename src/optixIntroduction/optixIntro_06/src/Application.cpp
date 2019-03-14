@@ -164,7 +164,7 @@ Application::Application(GLFWwindow* window,
   m_glslFS      = 0;
   m_glslProgram = 0;
 
-  m_gamma          = 2.2f;
+  m_gamma          = 1.0f;//2.2f;
   m_colorBalance   = optix::make_float3(1.0f, 1.0f, 1.0f);
   m_whitePoint     = 1.0f;
   m_burnHighlights = 0.8f;
@@ -1265,8 +1265,8 @@ void Application::initMaterials()
   // Glass material for the box.
   parameters.indexBSDF           = INDEX_BSDF_SPECULAR_REFLECTION_TRANSMISSION; // Index into sysSampleBSDF and sysEvalBSDF.
   parameters.albedo              = optix::make_float3(1.0f);
-  parameters.thinwalled          = false;
-  parameters.absorptionColor     = optix::make_float3(0.8f, 0.8f, 0.9f); // Light blue
+  parameters.thinwalled          = true;
+  parameters.absorptionColor     = optix::make_float3(1.0f, 1.0f, 1.0f);//optix::make_float3(0.8f, 0.8f, 0.9f); // Light blue
   parameters.volumeDistanceScale = 1.0f;
   parameters.ior                 = 1.33f; // Water
   m_guiMaterialParameters.push_back(parameters); // 1
@@ -1620,39 +1620,54 @@ void Application::createLights()
   if (m_light)  // Add a square area light over the scene objects.
   {
     light.type      = LIGHT_PARALLELOGRAM;                    // A geometric area light with diffuse emission distribution function.
-    light.position  = optix::make_float3(-0.5f, 4.0f, -0.5f); // Corner position.
-    light.vecU      = optix::make_float3(1.0f, 0.0f, 0.0f);   // To the right.
-    light.vecV      = optix::make_float3(0.0f, 0.0f, 1.0f);   // To the front.
+    light.vecU      = optix::make_float3(200.0f, 0.0f, 0.0f);   // To the right.
+    light.vecV      = optix::make_float3(0.0f, 300.0f, 0.0f);   // To the front.
     optix::float3 n = optix::cross(light.vecU, light.vecV);   // Length of the cross product is the area.
     light.area     = optix::length(n);                        // Calculate the world space area of that rectangle. (25 m^2)
     light.normal   = n / light.area;                          // Normalized normal
     light.emission = optix::make_float3(100.0f);              // Radiant exitance in Watt/m^2.
 
-    int lightIndex = int(m_lightDefinitions.size()); // This becomes this light's parLightIndex value.
-    m_lightDefinitions.push_back(light);
+    std::vector<optix::float3> light_z;
+    light_z.push_back(optix::make_float3(50,50,-1000.5f));
+    light_z.push_back(optix::make_float3(50,-350,-1000.5f));
+    light_z.push_back(optix::make_float3(-250,-350,-1000.5f));
+    light_z.push_back(optix::make_float3(-250,50,-1000.5f));
 
-    // Create the actual area light geometry in the scene. This creates just two triangles, because I do not want to have another intersection routine for code size and performance reasons.
-    optix::Geometry geoLight = createParallelogram(light.position, light.vecU, light.vecV, light.normal);
+    //light.position  = optix::make_float3(0.0f, 0.0f, -1100.0f); // Corner position.
 
-    optix::GeometryInstance giLight = m_context->createGeometryInstance(); // This connects Geometries with Materials.
-    giLight->setGeometry(geoLight);
-    giLight->setMaterialCount(1);
-    giLight->setMaterial(0, m_lightMaterial);
-    giLight["parLightIndex"]->setInt(lightIndex);
 
-    optix::Acceleration accLight = m_context->createAcceleration(m_builder);
-    setAccelerationProperties(accLight);
+    int lightIndex = int(light_z.size());  // This becomes this light's parLightIndex value.
 
-    optix::GeometryGroup ggLight = m_context->createGeometryGroup(); // This connects GeometryInstances with Acceleration structures. (All OptiX nodes with "Group" in the name hold an Acceleration.)
-    ggLight->setAcceleration(accLight);
-    ggLight->setChildCount(1);
-    ggLight->setChild(0, giLight);
+    for(int i=0;i < lightIndex; i++){
+      std::cout<<"i is: "<<i<<std::endl;
+      light.position = light_z[i];
+      m_lightDefinitions.push_back(light);
+      std::cout<<"light size is: "<<m_lightDefinitions.size()<<std::endl;
 
-    // Area lights are defined in world space just to make sampling simpler in this demo.
-    // Attach it directly to the scene's root node directly.
-    unsigned int count = m_rootGroup->getChildCount();
-    m_rootGroup->setChildCount(count + 1);
-    m_rootGroup->setChild(count, ggLight);
+
+      // Create the actual area light geometry in the scene. This creates just two triangles, because I do not want to have another intersection routine for code size and performance reasons.
+      optix::Geometry geoLight = createParallelogram(light.position, light.vecU, light.vecV, light.normal);
+
+      optix::GeometryInstance giLight = m_context->createGeometryInstance(); // This connects Geometries with Materials.
+      giLight->setGeometry(geoLight);
+      giLight->setMaterialCount(1);
+      giLight->setMaterial(0, m_lightMaterial);
+      giLight["parLightIndex"]->setInt(lightIndex);
+
+      optix::Acceleration accLight = m_context->createAcceleration(m_builder);
+      setAccelerationProperties(accLight);
+
+      optix::GeometryGroup ggLight = m_context->createGeometryGroup(); // This connects GeometryInstances with Acceleration structures. (All OptiX nodes with "Group" in the name hold an Acceleration.)
+      ggLight->setAcceleration(accLight);
+      ggLight->setChildCount(1);
+      ggLight->setChild(0, giLight);
+
+      // Area lights are defined in world space just to make sampling simpler in this demo.
+      // Attach it directly to the scene's root node directly.
+      unsigned int count = m_rootGroup->getChildCount();
+      m_rootGroup->setChildCount(count + 1);
+      m_rootGroup->setChild(count, ggLight);
+    }
   }
 
   // Put the light definitions into the sysLightDefinitions buffer.

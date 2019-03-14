@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,8 +84,8 @@ void printUsage(const std::string& argv0)
 
 int main(int argc, char *argv[])
 {
-  int  windowWidth  = 512;
-  int  windowHeight = 512;
+  int  windowWidth  = 1280;//512;
+  int  windowHeight = 1080;//512;
   int  devices      = 3210;  // Decimal digits encode OptiX device ordinals. Default 3210 means to use all four first installed devices, when available.
   bool interop      = true;  // Use OpenGL interop Pixel-Bufferobject to display the resulting image. Disable this when running on multi-GPU or TCC driver mode.
   int  stackSize    = 1024;  // Command line parameter just to be able to find the smallest working size.
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 
   std::string filenameScreenshot;
   bool hasGUI = true;
-  
+
   // Parse the command line parameters.
   for (int i = 1; i < argc; ++i)
   {
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     else if (arg == "-w" || arg == "--width")
     {
       if (i == argc - 1)
-      { 
+      {
         std::cerr << "Option '" << arg << "' requires additional argument.\n";
         printUsage(argv[0]);
         return 0;
@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     else if (arg == "-h" || arg == "--height")
     {
       if (i == argc - 1)
-      { 
+      {
         std::cerr << "Option '" << arg << "' requires additional argument.\n";
         printUsage(argv[0]);
         return 0;
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
     else if (arg == "-d" || arg == "--devices")
     {
       if (i == argc - 1)
-      { 
+      {
         std::cerr << "Option '" << arg << "' requires additional argument.\n";
         printUsage(argv[0]);
         return 0;
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
     else if (arg == "-s" || arg == "--stack")
     {
       if (i == argc - 1)
-      { 
+      {
         std::cerr << "Option '" << arg << "' requires additional argument.\n";
         printUsage(argv[0]);
         return 0;
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
     else if (arg == "-m" || arg == "--miss")
     {
       if (i == argc - 1)
-      { 
+      {
         std::cerr << "Option '" << arg << "' requires additional argument.\n";
         printUsage(argv[0]);
         return 0;
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
     else if (arg == "-f" || arg == "--file")
     {
       if (i == argc - 1)
-      { 
+      {
         std::cerr << "Option '" << arg << "' requires additional argument.\n";
         printUsage(argv[0]);
         return 0;
@@ -227,15 +227,15 @@ int main(int argc, char *argv[])
     glfwPollEvents(); // Render continuously.
 
     glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
-    
+
     g_app->reshape(windowWidth, windowHeight);
 
     if (hasGUI)
     {
       g_app->guiNewFrame();
-    
+
       //g_app->guiReferenceManual(); // DAR HACK The ImGui "Programming Manual" as example code.
-    
+
       g_app->guiWindow(); // The OptiX introduction example GUI window.
 
       g_app->guiEventHandler(); // Currently only reacting on SPACE to toggle the GUI window.
@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
 
       glfwSetWindowShouldClose(window, 1);
     }
-    
+
     //glfwWaitEvents(); // Render only when an event is happening. Needs some glfwPostEmptyEvent() to prevent GUI lagging one frame behind when ending an action.
   }
 
@@ -268,4 +268,3 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-

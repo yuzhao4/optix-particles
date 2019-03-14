@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2013-2018, NVIDIA CORPORATION. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,11 +59,10 @@ RT_PROGRAM void miss_environment_constant()
   // If the last surface intersection was a diffuse which was directly lit with multiple importance sampling,
   // then calculate light emission with multiple importance sampling as well.
   const float weightMIS = (thePrd.flags & FLAG_DIFFUSE) ? powerHeuristic(thePrd.pdf, 0.25f * M_1_PIf) : 1.0f;
-  thePrd.radiance = make_float3(weightMIS); // Constant white emission multiplied by MIS weight.
+  thePrd.radiance = make_float3(weightMIS) * 0.1f; // Constant white emission multiplied by MIS weight.
 #else
-  thePrd.radiance = make_float3(1.0f); // Constant white emission.
+  thePrd.radiance = make_float3(0.0f); // Constant white emission.
 #endif
 
   thePrd.flags |= FLAG_TERMINATE;
 }
-

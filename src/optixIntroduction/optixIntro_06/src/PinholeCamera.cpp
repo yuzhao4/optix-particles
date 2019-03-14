@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2013-2018, NVIDIA CORPORATION. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,17 +32,21 @@
 
 
 PinholeCamera::PinholeCamera()
-: m_distance(10.0f) // Some camera defaults for the demo scene.
-, m_phi(0.75f)
-, m_theta(0.6f)
-, m_fov(60.0f)
-//:  m_distance(3.0f)
-//, m_phi(0.75f)  // positive z-axis
-//, m_theta(0.5f) // equator
-//, m_fov(60.0f)
+// : m_distance(10.0f) // Some camera defaults for the demo scene.
+// , m_phi(0.75f)
+// , m_theta(0.6f)
+// , m_fov(60.0f)
+: m_distance(1000.0f) // Some camera defaults for the demo scene.
+, m_phi(0.25f)
+, m_theta(0.5f)
+, m_fov(26.88)//(60.0f)
+// :  m_distance(3.0f)
+// , m_phi(0.75f)  // positive z-axis
+// , m_theta(0.5f) // equator
+// , m_fov(60.0f)
 , m_width(1)
 , m_height(1)
-, m_aspect(1.0f)
+, m_aspect(13.0f)//(1.0f)
 , m_baseX(0)
 , m_baseY(0)
 , m_speedRatio(10.0f)
@@ -64,7 +68,7 @@ PinholeCamera::~PinholeCamera()
 
 void PinholeCamera::setViewport(int w, int h)
 {
-  if (m_width != w || m_height != h) 
+  if (m_width != w || m_height != h)
   {
     // Never drop to zero viewport size. This avoids lots of checks for zero in other routines.
     m_width  = (w) ? w : 1;
@@ -88,22 +92,22 @@ void PinholeCamera::orbit(int x, int y)
     // Wrap phi.
     if (m_phi < 0.0f)
     {
-      m_phi += 1.0f; 
+      m_phi += 1.0f;
     }
     else if (1.0f < m_phi)
     {
-      m_phi -= 1.0f; 
+      m_phi -= 1.0f;
     }
 
     m_theta += float(m_dy) / float(m_height);
     // Clamp theta.
     if (m_theta < 0.0f)
     {
-      m_theta = 0.0f; 
+      m_theta = 0.0f;
     }
     else if (1.0f < m_theta)
     {
-      m_theta = 1.0f; 
+      m_theta = 1.0f;
     }
   }
 }
@@ -185,8 +189,14 @@ bool PinholeCamera::getFrustum(optix::float3& pos, optix::float3& u, optix::floa
     const float sinPhi   = sinf(m_phi * 2.0f * M_PIf);
     const float cosTheta = cosf(m_theta * M_PIf);
     const float sinTheta = sinf(m_theta * M_PIf);
-  
+
+    std::cout<<"cos Phi is: "<<cosPhi<<std::endl;
+    std::cout<<"sin Phi is: "<<sinPhi<<std::endl;
+    std::cout<<"cos the is: "<<cosTheta<<std::endl;
+    std::cout<<"cos the is: "<<sinTheta<<std::endl;
+
     optix::float3 normal = optix::make_float3(cosPhi * sinTheta, -cosTheta, -sinPhi * sinTheta); // "normal", unit vector from origin to spherical coordinates (phi, theta)
+    std::cout<<"camera normal is: "<<normal.x<<" "<<normal.y<<" "<<normal.z<<std::endl;
 
     float tanFov = tanf((m_fov * 0.5f) * M_PIf / 180.0f); // m_fov is in the range [1.0f, 179.0f].
     m_cameraPosition = m_center + m_distance * normal;
@@ -200,6 +210,8 @@ bool PinholeCamera::getFrustum(optix::float3& pos, optix::float3& u, optix::floa
     v = m_cameraV;
     w = m_cameraW;
 
+    std::cout<<"camera position is: "<<pos.x<<" "<<pos.y<<" "<<pos.z<<std::endl;
+
     m_changed = false; // Next time asking for the frustum will return false unless the camera has changed again.
   }
   return changed;
@@ -207,12 +219,12 @@ bool PinholeCamera::getFrustum(optix::float3& pos, optix::float3& u, optix::floa
 
 bool PinholeCamera::setDelta(int x, int y)
 {
-  if (m_baseX != x || m_baseY != y) 
+  if (m_baseX != x || m_baseY != y)
   {
     m_dx = x - m_baseX;
     m_dy = y - m_baseY;
 
-    m_baseX = x; 
+    m_baseX = x;
     m_baseY = y;
 
     m_changed = true; // m_changed is only reset when asking for the frustum.
