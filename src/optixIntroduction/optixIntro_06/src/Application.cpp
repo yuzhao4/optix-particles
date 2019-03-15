@@ -1360,7 +1360,7 @@ void Application::createScene()
   unsigned int count;
 
 
-  std::string particle_dir = "/home/yu/optix_src/optix_advanced_samples-master/src/optixIntroduction/optixIntro_06/data/particles.txt";
+  std::string particle_dir = "/home/yu/optix_src/optix_advanced_samples-master/src/optixIntroduction/optixIntro_06/data/particles_generated.txt";
 
   std::ifstream particle_file(particle_dir);
   std::cout<<"\nafter particle_file\n"<<std::endl;
@@ -1396,6 +1396,8 @@ void Application::createScene()
 
     try{
       optix::Geometry geoSphere = createSphere(180, 90, radius, M_PIf);
+      //optix::Geometry geoSphere = createSphere(90, 45, radius, M_PIf);
+
       optix::GeometryInstance giSphere = m_context->createGeometryInstance();
       giSphere->setGeometry(geoSphere);
       giSphere->setMaterialCount(1);
@@ -1442,131 +1444,7 @@ void Application::createScene()
   {
     std::cerr << e.getErrorString() << std::endl;
   }
- //  try
- //  {
- //    // OptiX Scene Graph construction.
- //
- //
- //    // Add a tessellated sphere with 180 longitudes and 90 latitudes, radius 1.0f and fully closed at the upper pole.
- //
- //
- //
- //
- //
- //
- //
- //
- //    // Add a new sphere thats 2.25 above
- //    optix::Geometry geoSphere1 = createSphere(180, 90, 0.05f, M_PIf);
- //
- //    optix::GeometryInstance giSphere1 = m_context->createGeometryInstance();
- //    giSphere1->setGeometry(geoSphere1);
- //    giSphere1->setMaterialCount(1);
- //    giSphere1->setMaterial(0, m_opaqueMaterial);
- //    giSphere1["parMaterialIndex"]->setInt(0); // Using parameters in sysMaterialParameters[3].
- //
- //    float trafoSphere1[16] =
- //    {
- //      1.0f, 0.0f, 0.0f, 0.0f,  // In the center, to the right of the box.
- //      0.0f, 1.0f, 0.0f, 2.25f, // The sphere is modeled with radius 1.0f. Move it above the floor plane to show shadows.
- //      0.0f, 0.0f, 1.0f, 0.0f,
- //      0.0f, 0.0f, 0.0f, 1.0f
- //    };
- //    optix::Matrix4x4 matrixSphere1(trafoSphere1);
- //
- //    ggSphere->setChild(0, giSphere1);
- //
- //    optix::Transform trSphere1 = m_context->createTransform();
- //    trSphere1->setChild(ggSphere);
- //    trSphere1->setMatrix(false, matrixSphere1.getData(), matrixSphere1.inverse().getData());
- //
- //    count = m_rootGroup->getChildCount();
- //    m_rootGroup->setChildCount(count + 1);
- //    m_rootGroup->setChild(count, trSphere1);
- //
- // // Put lights into the scene.
 
-
-  // try
-  // {
-  //   // OptiX Scene Graph construction.
-  //   m_rootAcceleration = m_context->createAcceleration(m_builder); // No need to set acceleration properties on the top level Acceleration.
-  //
-  //   m_rootGroup = m_context->createGroup(); // The scene's root group nodes becomes the sysTopObject.
-  //   m_rootGroup->setAcceleration(m_rootAcceleration);
-  //
-  //   m_context["sysTopObject"]->set(m_rootGroup); // This is where the rtTrace calls start the BVH traversal. (Same for radiance and shadow rays.)
-  //
-  //   unsigned int count;
-  //
-  //   // Add a tessellated sphere with 180 longitudes and 90 latitudes, radius 1.0f and fully closed at the upper pole.
-  //   optix::Geometry geoSphere = createSphere(180, 90, 0.05f, M_PIf);
-  //
-  //   optix::GeometryInstance giSphere = m_context->createGeometryInstance();
-  //   giSphere->setGeometry(geoSphere);
-  //   giSphere->setMaterialCount(1);
-  //   giSphere->setMaterial(0, m_opaqueMaterial);
-  //   giSphere["parMaterialIndex"]->setInt(0); // Using parameters in sysMaterialParameters[3].
-  //
-  //   optix::Acceleration accSphere = m_context->createAcceleration(m_builder);
-  //   setAccelerationProperties(accSphere);
-  //
-  //   optix::GeometryGroup ggSphere = m_context->createGeometryGroup();
-  //   ggSphere->setAcceleration(accSphere);
-  //   ggSphere->setChildCount(1);
-  //   ggSphere->setChild(0, giSphere);
-  //
-  //   float trafoSphere[16] =
-  //   {
-  //     1.0f, 0.0f, 0.0f, 0.0f,  // In the center, to the right of the box.
-  //     0.0f, 1.0f, 0.0f, 1.25f, // The sphere is modeled with radius 1.0f. Move it above the floor plane to show shadows.
-  //     0.0f, 0.0f, 1.0f, 0.0f,
-  //     0.0f, 0.0f, 0.0f, 1.0f
-  //   };
-  //   optix::Matrix4x4 matrixSphere(trafoSphere);
-  //
-  //   optix::Transform trSphere = m_context->createTransform();
-  //   trSphere->setChild(ggSphere);
-  //   trSphere->setMatrix(false, matrixSphere.getData(), matrixSphere.inverse().getData());
-  //
-  //   count = m_rootGroup->getChildCount();
-  //   m_rootGroup->setChildCount(count + 1);
-  //   m_rootGroup->setChild(count, trSphere);
-  //
-  //   // Add a new sphere thats 2.25 above
-  //   optix::Geometry geoSphere1 = createSphere(180, 90, 0.05f, M_PIf);
-  //
-  //   optix::GeometryInstance giSphere1 = m_context->createGeometryInstance();
-  //   giSphere1->setGeometry(geoSphere1);
-  //   giSphere1->setMaterialCount(1);
-  //   giSphere1->setMaterial(0, m_opaqueMaterial);
-  //   giSphere1["parMaterialIndex"]->setInt(0); // Using parameters in sysMaterialParameters[3].
-  //
-  //   float trafoSphere1[16] =
-  //   {
-  //     1.0f, 0.0f, 0.0f, 0.0f,  // In the center, to the right of the box.
-  //     0.0f, 1.0f, 0.0f, 2.25f, // The sphere is modeled with radius 1.0f. Move it above the floor plane to show shadows.
-  //     0.0f, 0.0f, 1.0f, 0.0f,
-  //     0.0f, 0.0f, 0.0f, 1.0f
-  //   };
-  //   optix::Matrix4x4 matrixSphere1(trafoSphere1);
-  //
-  //   ggSphere->setChild(0, giSphere1);
-  //
-  //   optix::Transform trSphere1 = m_context->createTransform();
-  //   trSphere1->setChild(ggSphere);
-  //   trSphere1->setMatrix(false, matrixSphere1.getData(), matrixSphere1.inverse().getData());
-  //
-  //   count = m_rootGroup->getChildCount();
-  //   m_rootGroup->setChildCount(count + 1);
-  //   m_rootGroup->setChild(count, trSphere1);
-  //
-  //   createLights(); // Put lights into the scene.
-  // }
-  // catch(optix::Exception& e)
-  // {
-  //   std::cerr << e.getErrorString() << std::endl;
-  // }
 }
 
 

@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-      for (int i = 0; i < 64; ++i) // Accumulate 64 samples per pixel.
+      for (int i = 0; i < 2048; ++i) // Accumulate 64 samples per pixel.
       {
         g_app->render();  // OptiX rendering and OpenGL texture update.
       }
