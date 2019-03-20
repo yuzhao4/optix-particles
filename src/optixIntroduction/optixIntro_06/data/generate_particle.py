@@ -1,23 +1,23 @@
 import numpy as np
 import subprocess
 
-W = 450
-H = 380
-D = 400
-PART_NUM = 1000
+W = 200
+H = 200
+D = 500
+PART_NUM = 100
 
 def generate_particle(W,H,D,PART_NUM):
     particles_coords = np.zeros((PART_NUM,4))
 
     particles_coords[:,0] = np.random.uniform(-W/2, W/2, PART_NUM)
     particles_coords[:,1] = np.random.uniform(-H/2, H/2, PART_NUM)
-    particles_coords[:,2] = np.random.uniform(-D/2, D/2, PART_NUM)
+    particles_coords[:,2] = np.random.uniform(-D, -300, PART_NUM)
 
     particles_coords[:,-1] = np.random.normal(2,0.1,PART_NUM)
 
     return particles_coords
 
-IMAGE_NUM = 100
+IMAGE_NUM = 10
 
 #zerosNumMax = PART_NUM / 10
 

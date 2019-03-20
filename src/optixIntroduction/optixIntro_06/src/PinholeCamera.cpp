@@ -39,14 +39,14 @@ PinholeCamera::PinholeCamera()
 : m_distance(1000.0f) // Some camera defaults for the demo scene.
 , m_phi(0.25f)
 , m_theta(0.5f)
-, m_fov(26.88)//(60.0f)
+, m_fov(26.591)//(60.0f)
 // :  m_distance(3.0f)
 // , m_phi(0.75f)  // positive z-axis
 // , m_theta(0.5f) // equator
 // , m_fov(60.0f)
 , m_width(1)
 , m_height(1)
-, m_aspect(13.0f)//(1.0f)
+, m_aspect(1.25f)//(1.0f)
 , m_baseX(0)
 , m_baseY(0)
 , m_speedRatio(10.0f)
@@ -74,6 +74,8 @@ void PinholeCamera::setViewport(int w, int h)
     m_width  = (w) ? w : 1;
     m_height = (h) ? h : 1;
     m_aspect = float(m_width) / float(m_height);
+    std::cout<<"m_width is: "<<m_width<<std::endl;
+    std::cout<<"m_height is: "<<m_height<<std::endl;
     m_changed = true;
   }
 }
@@ -200,10 +202,14 @@ bool PinholeCamera::getFrustum(optix::float3& pos, optix::float3& u, optix::floa
 
     float tanFov = tanf((m_fov * 0.5f) * M_PIf / 180.0f); // m_fov is in the range [1.0f, 179.0f].
     m_cameraPosition = m_center + m_distance * normal;
-
+    std::cout<<"m_aspect is: "<<m_aspect<<std::endl;
+    //m_aspect = 1.185185185f;
     m_cameraU = m_aspect * optix::make_float3(-sinPhi, 0.0f, -cosPhi) * tanFov;               // "tangent"
     m_cameraV = optix::make_float3(cosTheta * cosPhi, sinTheta, cosTheta * -sinPhi) * tanFov; // "bitangent"
     m_cameraW = -normal;                                                                   // "-normal" to look at the center.
+    m_cameraU = optix::make_float3(-3.072f,0.0f,0.0f);
+    m_cameraV = optix::make_float3(0.0f,2.4576,0.0f);
+    m_cameraW = optix::make_float3(0.0f,0.0f,13.0f);
 
     pos = m_cameraPosition;
     u = m_cameraU;
@@ -211,6 +217,9 @@ bool PinholeCamera::getFrustum(optix::float3& pos, optix::float3& u, optix::floa
     w = m_cameraW;
 
     std::cout<<"camera position is: "<<pos.x<<" "<<pos.y<<" "<<pos.z<<std::endl;
+    std::cout<<"camera u is: "<<u.x<<" "<<u.y<<" "<<u.z<<std::endl;
+    std::cout<<"camera v is: "<<v.x<<" "<<v.y<<" "<<v.z<<std::endl;
+    std::cout<<"camera w is: "<<w.x<<" "<<w.y<<" "<<w.z<<std::endl;
 
     m_changed = false; // Next time asking for the frustum will return false unless the camera has changed again.
   }

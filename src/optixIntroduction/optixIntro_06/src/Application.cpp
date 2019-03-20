@@ -217,7 +217,8 @@ void Application::reshape(int width, int height)
   {
     m_width  = width;
     m_height = height;
-
+    std::cout<<"in reshape m_width is: "<<m_width<<std::endl;
+    std::cout<<"in reshape m_height is: "<<m_height<<std::endl;
     glViewport(0, 0, m_width, m_height);
     try
     {
@@ -1264,8 +1265,10 @@ void Application::initMaterials()
 
   // Glass material for the box.
   parameters.indexBSDF           = INDEX_BSDF_SPECULAR_REFLECTION_TRANSMISSION; // Index into sysSampleBSDF and sysEvalBSDF.
+  // parameters.indexBSDF           = INDEX_BSDF_DIFFUSE_REFLECTION; // Index into sysSampleBSDF and sysEvalBSDF.
+
   parameters.albedo              = optix::make_float3(1.0f);
-  parameters.thinwalled          = true;
+  parameters.thinwalled          = false;
   parameters.absorptionColor     = optix::make_float3(1.0f, 1.0f, 1.0f);//optix::make_float3(0.8f, 0.8f, 0.9f); // Light blue
   parameters.volumeDistanceScale = 1.0f;
   parameters.ior                 = 1.33f; // Water
@@ -1507,9 +1510,9 @@ void Application::createLights()
 
     std::vector<optix::float3> light_z;
     light_z.push_back(optix::make_float3(50,50,-1000.5f));
-    light_z.push_back(optix::make_float3(50,-350,-1000.5f));
-    light_z.push_back(optix::make_float3(-250,-350,-1000.5f));
-    light_z.push_back(optix::make_float3(-250,50,-1000.5f));
+    //light_z.push_back(optix::make_float3(50,-350,-1000.5f));
+    //light_z.push_back(optix::make_float3(-250,-350,-1000.5f));
+    //light_z.push_back(optix::make_float3(-250,50,-1000.5f));
 
     //light.position  = optix::make_float3(0.0f, 0.0f, -1100.0f); // Corner position.
 
