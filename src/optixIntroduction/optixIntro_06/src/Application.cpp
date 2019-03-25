@@ -1268,10 +1268,10 @@ void Application::initMaterials()
   // parameters.indexBSDF           = INDEX_BSDF_DIFFUSE_REFLECTION; // Index into sysSampleBSDF and sysEvalBSDF.
 
   parameters.albedo              = optix::make_float3(1.0f);
-  parameters.thinwalled          = false;
+  parameters.thinwalled          = true;
   parameters.absorptionColor     = optix::make_float3(1.0f, 1.0f, 1.0f);//optix::make_float3(0.8f, 0.8f, 0.9f); // Light blue
   parameters.volumeDistanceScale = 1.0f;
-  parameters.ior                 = 1.33f; // Water
+  parameters.ior                 = 1.75f; // Water
   m_guiMaterialParameters.push_back(parameters); // 1
 
   // // Glass material for the sphere inside that box to show nested materials!
@@ -1501,18 +1501,25 @@ void Application::createLights()
   if (m_light)  // Add a square area light over the scene objects.
   {
     light.type      = LIGHT_PARALLELOGRAM;                    // A geometric area light with diffuse emission distribution function.
-    light.vecU      = optix::make_float3(200.0f, 0.0f, 0.0f);   // To the right.
-    light.vecV      = optix::make_float3(0.0f, 300.0f, 0.0f);   // To the front.
+
+    float light_width = 300.0f;
+    float light_height = 300.0f;
+    float gap = 100.0f;
+    float depth = -1000.5f; // z direction coordinates;
+
+    light.vecU      = optix::make_float3(light_width, 0.0f, 0.0f);   // To the right.
+    light.vecV      = optix::make_float3(0.0f, light_height, 0.0f);   // To the front.
+
     optix::float3 n = optix::cross(light.vecU, light.vecV);   // Length of the cross product is the area.
     light.area     = optix::length(n);                        // Calculate the world space area of that rectangle. (25 m^2)
     light.normal   = n / light.area;                          // Normalized normal
     light.emission = optix::make_float3(100.0f);              // Radiant exitance in Watt/m^2.
 
     std::vector<optix::float3> light_z;
-    light_z.push_back(optix::make_float3(50,50,-1000.5f));
-    //light_z.push_back(optix::make_float3(50,-350,-1000.5f));
-    //light_z.push_back(optix::make_float3(-250,-350,-1000.5f));
-    //light_z.push_back(optix::make_float3(-250,50,-1000.5f));
+    light_z.push_back(optix::make_float3(gap,gap,depth));                                     // left top light
+    light_z.push_back(optix::make_float3(gap,-(gap + light_height),depth));                   // left bottom lights
+    light_z.push_back(optix::make_float3(-(gap + light_width),-(gap + light_height),depth));  // right bottom lights
+    light_z.push_back(optix::make_float3(-(gap + light_width),gap,depth));                   // right top light
 
     //light.position  = optix::make_float3(0.0f, 0.0f, -1100.0f); // Corner position.
 

@@ -4,7 +4,7 @@ import subprocess
 W = 200
 H = 200
 D = 500
-PART_NUM = 100
+PART_NUM = 50
 
 def generate_particle(W,H,D,PART_NUM):
     particles_coords = np.zeros((PART_NUM,4))
@@ -13,11 +13,11 @@ def generate_particle(W,H,D,PART_NUM):
     particles_coords[:,1] = np.random.uniform(-H/2, H/2, PART_NUM)
     particles_coords[:,2] = np.random.uniform(-D, -300, PART_NUM)
 
-    particles_coords[:,-1] = np.random.normal(2,0.1,PART_NUM)
+    particles_coords[:,-1] = np.random.normal(1,0.1,PART_NUM)
 
     return particles_coords
 
-IMAGE_NUM = 10
+IMAGE_NUM = 100
 
 #zerosNumMax = PART_NUM / 10
 
