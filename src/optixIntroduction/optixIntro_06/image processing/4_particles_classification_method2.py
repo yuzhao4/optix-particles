@@ -61,13 +61,14 @@ def get_contour_centroids(image_names, threshold):
 @ This function is used to move a single particle and track the (probability, x, y)
 @ img         The img with particles with shape((x,x))
 @ centroid    The calculated centroid passed to shake
-@ svm         The svm model used to calculate the probability
+@ svm1        The svm model used to predict its one or two particle
+@ svm2        The svm model to calculate probability
 @ radius      The radius to move around the centroid
 @ part_width  The particle image width
 @ threshold   The threshold to determine to return one or two probability 
 @ return      The moved single particle image with shape((1, -1))
 '''
-def move_particle(image, centroid, svm, radius, part_width, threshold):
+def move_particle(image, centroid, svm1, svm2, radius, part_width, threshold):
     img = image.copy()
     img = np.pad(img, pad_width=((radius,radius),(radius,radius)),mode='median')
     particles = np.empty((0, part_width * part_width))
@@ -195,24 +196,24 @@ def check_similarity(a1, a2, threshold):
 # Import datasets, classifiers and performance metrics
 
 # The particles dataset
-particles = np.loadtxt("particle images_0320.txt", delimiter =' ')
-particles_new = np.loadtxt("particle images_0324.txt", delimiter =' ')
+particles_one = np.loadtxt("particle images_0320.txt", delimiter =' ')
+particles_two = np.loadtxt("particle images_0324.txt", delimiter =' ')
 
-noise = np.loadtxt("noise particles_0320.txt", delimiter = ' ')
-noise_new = np.loadtxt("noise particles_0324.txt", delimiter = ' ')
+noise_one = np.loadtxt("noise particles_0320.txt", delimiter = ' ')
+noise_two = np.loadtxt("noise particles_0324.txt", delimiter = ' ')
 
-particles = np.append(particles, particles_new, axis=0)
-noise = np.append(noise, noise_new, axis=0)
+particles_all = np.append(particles_one, particles_two, axis=0)
+noise_all = np.append(noise_one, noise_two, axis=0)
 
-image_size = particles.shape[0]
+image_size_one = particles_one.shape[0]
+image_size_two = particles_two.shape[0]
+image_size_all = image_size_one + image_size_two
 
-labels_one = np.ones((int(image_size/2),1))
-labels_two = labels_one
+labels_one = np.ones((int(image_size_one),1))
+labels_two = np.ones((int(image_size_two),1)) + 1
 
-labels_part = np.append(labels_one, labels_two, axis=0)
-labels_noise = np.zeros((image_size,1))
-
-image_size = image_size + noise.shape[0]
+labels_part_all = np.append(labels_one, labels_two, axis=0)
+labels_noise_all = np.zeros((image_size_all,1))
 
 # The data that we are interested in is made of 8x8 images of digits, let's
 # have a look at the first 4 images, stored in the `images` attribute of the
@@ -221,12 +222,17 @@ image_size = image_size + noise.shape[0]
 # images, we know which digit they represent: it is given in the 'target' of
 # the dataset.
 #images_and_labels = list(zip(digits.images, digits.target))
-particle_and_labels = list(zip(particles, labels_part))
-noise_and_labels = list(zip(noise, labels_noise))
+particle_and_labels_all = list(zip(particles_all, labels_part_all))
+noise_and_labels_all = list(zip(noise_all, labels_noise_all))
 
+particle_and_labels_one = list(zip(particles_one, labels_one))
+particle_and_labels_two = list(zip(particles_two, labels_two))
+
+##noise_and_labels_one = list(zip(noise_one, labels_one))
+##noise_and_labels_two = list(zip(noise_one, labels_one))
 images_per_row = 8
 
-for index, (image, label) in enumerate(particle_and_labels[:images_per_row]):
+for index, (image, label) in enumerate(particle_and_labels_all[:images_per_row]):
     plt.subplot(2, images_per_row, index + 1)
     plt.axis('off')
     plt.imshow(image.reshape((20,20)), cmap=plt.cm.gray_r, interpolation='nearest')
@@ -234,41 +240,54 @@ for index, (image, label) in enumerate(particle_and_labels[:images_per_row]):
 
 # To apply a classifier on this data, we need to flatten the image, to
 # turn the data in a (samples, feature) matrix:
-n_samples = image_size
+n_samples_all = image_size_all + labels_noise_all.shape[0]
+
 ##data = particle_and_labels + noise_and_labels
+row_train_index_all = int(n_samples_all * 4 / 5)
 
-particles_data = np.append(particles, labels_part, axis = 1)
-noise_data = np.append(noise, labels_noise, axis = 1)
+particles_data_all = np.append(particles_all, labels_part_all, axis = 1)
+noise_data_all = np.append(noise_all, labels_noise_all, axis = 1)
 
-data = np.append(particles_data, noise_data, axis = 0)
+data_all = np.append(particles_data_all, noise_data_all, axis = 0)
 
-np.random.shuffle(data)
-print(data[:,-1])
-labels = data[:,-1]
-data = np.delete(data, -1, axis=1)
+np.random.shuffle(data_all)
+print(data_all[:,-1])
+labels_all = data_all[:,-1]
+data_all = np.delete(data_all, -1, axis=1)
 
-print(data.shape)
-print(labels.shape)
+print(data_all.shape)
+print(labels_all.shape)
 
-# Create a classifier: a support vector classifier
-classifier = svm.SVC(gamma='scale',probability = True)
-
-row_train_index = int(n_samples * 4 / 5)
-
+# Create a classifier: a support vector classifier with 0320 0324
+classifier1 = svm.SVC(gamma='scale',probability = True)
 # We learn the digits on the first half of the digits
 ##classifier.fit(data[:n_samples // 2, :], labels[:n_samples // 2])
-classifier.fit(data[:row_train_index, :], labels[:row_train_index])
+classifier1.fit(data_all[:row_train_index_all, :], labels_all[:row_train_index_all])
+
+data_two = np.append(particles_two, labels_two - 1, axis = 1)
+data_two = np.append(data_two, noise_data_all, axis = 0)
+
+np.random.shuffle(data_two)
+labels_fit_two = data_two[:,-1]
+data_two = np.delete(data_two, -1, axis=1)
+
+n_samples_two = image_size_two + labels_noise_all.shape[0]
+row_train_index_two = int(n_samples_two * 4 / 5)
+
+# svm with 0324 only
+classifier2 = svm.SVC(gamma='scale',probability = True)
+classifier2.fit(data_two[:row_train_index_two, :], labels_fit_two[:row_train_index_two])
 
 # Now predict the value of the digit on the second half:
-expected = labels[row_train_index:]
-predicted = classifier.predict(data[row_train_index:,:])
+expected = labels_all[row_train_index_all:]
+predicted = classifier1.predict(data_all[row_train_index_all:,:])
 
 print(predicted)
 print("Classification report for classifier %s:\n%s\n"
-      % (classifier, metrics.classification_report(expected, predicted)))
+      % (classifier1, metrics.classification_report(expected, predicted)))
 print("Confusion matrix:\n%s" % metrics.confusion_matrix(expected, predicted))
 
-images_and_predictions = list(zip(data[row_train_index:,:], predicted))
+images_and_predictions = list(zip(data_all[row_train_index_all:,:], predicted))
 for index, (image, prediction) in enumerate(images_and_predictions[:images_per_row]):
     plt.subplot(2, images_per_row, index + images_per_row + 1)
     plt.axis('off')
@@ -299,52 +318,18 @@ double_image_names = sorted(glob.glob(double_folder + "/images/*.png"))
 single_size = len(single_coord_names)
 double_size = len(double_coord_names)
 
+size_all = single_size + double_size
+
+coord_names_all = single_coord_names + double_coord_names
+image_names_all = single_image_names + double_image_names
+
 single_image_coords_calculated = []
 double_image_coords_calculated = []
 
-for i in range(double_size):
-    img = cv2.imread(double_image_names[i],0)
-##    cv2.imshow(str(i),img)
-##    cv2.waitKey(0)
-    img = gaussian_filter(img, 0.5)
-    thresh = cv2.threshold(img, 50, 255, 0)[1]
-
-    coords = np.empty((0,2))
-    coords_svm = np.empty((0,5))
-    # find contours in the thresholded image
-    cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    size = 0
-    for c in cnts:
-        # compute the center of the contour
-        M = cv2.moments(c)
-        if M["m00"] != 0:
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
-            size += 1
-            coords = np.append(coords, np.array([cX,cY]).reshape((1,2)), axis=0)
-
-            ret = move_particle(img, np.array([cX, cY]),
-                                classifier, 10, 20, 0.95).reshape((1,5))
-            coords_svm = np.append(coords_svm, ret, axis=0)            
-    single_image_coords_calculated.append(coords)
-    read_coords = np.loadtxt(double_coord_names[i],delimiter=' ')
-    print("There are %d countours", {size})
-    print("distance between real coords and coords svm I is: ",
-          check_similarity(read_coords, coords_svm[:,1:3], 1))
-    print("distance between real coords and coords svm II is: ",
-          check_similarity(read_coords, coords_svm[:,3:5], 1))
-    print("distance between real coords and coords is: ",
-          check_similarity(read_coords, coords, 1))
-    
-    if i == 0:
-        print("---",coords_svm[:,1:3][coords_svm[:,1].argsort()])
-        print("---",coords_svm[:,3:5][coords_svm[:,3].argsort()])
-        print("---",read_coords[read_coords[:,0].argsort()])
-        break
-    
-##for i in range(single_size):
-##    img = cv2.imread(single_image_names[i],0)
+##for i in range(double_size):
+##    img = cv2.imread(double_image_names[i],0)
+####    cv2.imshow(str(i),img)
+####    cv2.waitKey(0)
 ##    img = gaussian_filter(img, 0.5)
 ##    thresh = cv2.threshold(img, 50, 255, 0)[1]
 ##
@@ -364,19 +349,58 @@ for i in range(double_size):
 ##            coords = np.append(coords, np.array([cX,cY]).reshape((1,2)), axis=0)
 ##
 ##            ret = move_particle(img, np.array([cX, cY]),
-##                                classifier, 10, 20, 0.95).reshape((1,5))
+##                                classifier1, 10, 20, 0.95).reshape((1,5))
 ##            coords_svm = np.append(coords_svm, ret, axis=0)            
 ##    single_image_coords_calculated.append(coords)
-##    read_coords = np.loadtxt(single_coord_names[i],delimiter=' ')
+##    read_coords = np.loadtxt(double_coord_names[i],delimiter=' ')
 ##    print("There are %d countours", {size})
-##
-##    print("distance between real coords and coords svm is: ",
+##    print("distance between real coords and coords svm I is: ",
 ##          check_similarity(read_coords, coords_svm[:,1:3], 1))
+##    print("distance between real coords and coords svm II is: ",
+##          check_similarity(read_coords, coords_svm[:,3:5], 1))
 ##    print("distance between real coords and coords is: ",
 ##          check_similarity(read_coords, coords, 1))
 ##    
 ##    if i == 0:
+##        print("---",coords_svm[:,1:3][coords_svm[:,1].argsort()])
+##        print("---",coords_svm[:,3:5][coords_svm[:,3].argsort()])
+##        print("---",read_coords[read_coords[:,0].argsort()])
 ##        break
+    
+for i in range(size_all):
+    img = cv2.imread(image_names_all[i],0)
+    img = gaussian_filter(img, 0.5)
+    thresh = cv2.threshold(img, 50, 255, 0)[1]
+
+    coords = np.empty((0,2))
+    coords_svm = np.empty((0,5))
+    # find contours in the thresholded image
+    cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    cnts = imutils.grab_contours(cnts)
+    size = 0
+    for c in cnts:
+        # compute the center of the contour
+        M = cv2.moments(c)
+        if M["m00"] != 0:
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            size += 1
+            coords = np.append(coords, np.array([cX,cY]).reshape((1,2)), axis=0)
+
+            ret = move_particle(img, np.array([cX, cY]),
+                                classifier1, 10, 20, 0.95).reshape((1,5))
+            coords_svm = np.append(coords_svm, ret, axis=0)            
+    single_image_coords_calculated.append(coords)
+    read_coords = np.loadtxt(single_coord_names[i],delimiter=' ')
+    print("There are %d countours", {size})
+
+    print("distance between real coords and coords svm is: ",
+          check_similarity(read_coords, coords_svm[:,1:3], 1))
+    print("distance between real coords and coords is: ",
+          check_similarity(read_coords, coords, 1))
+    
+    if i == 0:
+        break
 
     
 cv2.destroyAllWindows()
