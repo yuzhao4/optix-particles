@@ -1519,7 +1519,7 @@ void Application::createLights()
     light_z.push_back(optix::make_float3(gap,gap,depth));                                     // left top light
     light_z.push_back(optix::make_float3(gap,-(gap + light_height),depth));                   // left bottom lights
     light_z.push_back(optix::make_float3(-(gap + light_width),-(gap + light_height),depth));  // right bottom lights
-    light_z.push_back(optix::make_float3(-(gap + light_width),gap,depth));                   // right top light
+    // light_z.push_back(optix::make_float3(-(gap + light_width),gap,depth));                   // right top light
 
     //light.position  = optix::make_float3(0.0f, 0.0f, -1100.0f); // Corner position.
 
